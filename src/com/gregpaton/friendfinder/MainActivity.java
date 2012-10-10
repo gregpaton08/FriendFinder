@@ -6,20 +6,42 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.Menu;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+
+	private final String TAG = this.getClass().getSimpleName();
 	
 	TextView _tvLocation;
+	TextView _tvFriend1;
+	TextView _tvFriend2;
+	TextView _tvFriend3;
+	TextView _tvFriend4;
+	ImageView _ivFriend1;
+	ImageView _ivFriend2;
+	ImageView _ivFriend3;
+	ImageView _ivFriend4;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
+        Log.i(TAG, "Main thread: " + Thread.currentThread().getId());
+        
         _tvLocation = (TextView) findViewById(R.id.tvLocation);
+        _tvFriend1 = (TextView) findViewById(R.id.tvFriend1);
+        _tvFriend2 = (TextView) findViewById(R.id.tvFriend2);
+        _tvFriend3 = (TextView) findViewById(R.id.tvFriend3);
+        _tvFriend4 = (TextView) findViewById(R.id.tvFriend4);
+        _ivFriend1 = (ImageView) findViewById(R.id.ivFriend1);
+        _ivFriend2 = (ImageView) findViewById(R.id.ivFriend2);
+        _ivFriend3 = (ImageView) findViewById(R.id.ivFriend3);
+        _ivFriend4 = (ImageView) findViewById(R.id.ivFriend4);
         
         //Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -31,7 +53,6 @@ public class MainActivity extends Activity {
                 //makeUseOfNewLocation(location);
 
         		String locationText = "Time: " + "Lat = " + location.getLatitude() + " Long = " + location.getLongitude() + "\n";
-
             	
             	if (location != null)
             	{
