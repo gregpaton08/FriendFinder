@@ -15,32 +15,32 @@
 
     <ImageView
         android:id="@+id/ivFriend2"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentLeft="true"
         android:layout_marginTop="50dp"
         android:src="@drawable/ic_launcher" />
 
     <ImageView
         android:id="@+id/ivFriend1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
         android:src="@drawable/ic_launcher" />
 
     <ImageView
         android:id="@+id/ivFriend3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/ivFriend2"
         android:src="@drawable/ic_launcher" />
 
     <ImageView
         android:id="@+id/ivFriend4"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_alignParentLeft="true"
         android:layout_below="@+id/ivFriend3"
         android:src="@drawable/ic_launcher" />

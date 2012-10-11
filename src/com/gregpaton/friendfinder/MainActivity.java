@@ -1,16 +1,22 @@
 package com.gregpaton.friendfinder;
 
+import java.io.InputStream;
+import java.net.URL;
+
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -59,6 +65,9 @@ public class MainActivity extends Activity {
             		//Toast.makeText(getApplicationContext(), locationText, Toast.LENGTH_SHORT).show();
             		_tvLocation.setText(locationText);
             	}
+            	Log.i("", "before image");
+                downloadImage(_ivFriend1);
+            	Log.i("", "after image");
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -73,7 +82,6 @@ public class MainActivity extends Activity {
         // Register the listener with the Location Manager to receive location updates
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         
-        
     }
 
     @Override
@@ -81,4 +89,37 @@ public class MainActivity extends Activity {
         getMenuInflater().inflate(R.menu.activity_main, menu);
         return true;
     }
+    
+    public void downloadImage(View v) {
+		//((ImageView)v).setImageBitmap(null);
+		new DownloadImageTask()
+				.execute("http://www.winlab.rutgers.edu/~shubhamj/mickey.png");
+	}
+
+	private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+		@Override
+		protected Bitmap doInBackground(String... url) {
+			Log.i("image", "doInBack");
+			return loadImageFromNetwork(url[0]);
+		}
+
+		@Override
+		protected void onPostExecute(Bitmap result) {
+			Log.i("image", "onPost");
+			_ivFriend1.setImageBitmap(result);
+		}
+	}
+
+	private Bitmap loadImageFromNetwork(String url) {
+		Bitmap bitmap = null;
+
+		try {
+			Log.i("image", "download");
+			bitmap = BitmapFactory.decodeStream((InputStream) new URL(url).getContent());
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+		return bitmap;
+	}
 }
