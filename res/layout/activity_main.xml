@@ -77,4 +77,48 @@
         android:layout_alignLeft="@+id/tvFriend2"
         android:text="TextView" />
 
+    <Button
+        android:id="@+id/btnRefresh"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/tvLocation"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="79dp"
+        android:text="Refresh" />
+
+    <TextView
+        android:id="@+id/tvFriendLoc1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/tvFriend1"
+        android:layout_marginLeft="20dp"
+        android:layout_toRightOf="@+id/btnRefresh"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tvFriendLoc2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvFriend2"
+        android:layout_alignBottom="@+id/tvFriend2"
+        android:layout_alignLeft="@+id/tvFriendLoc1"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tvFriendLoc3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/ivFriend4"
+        android:layout_alignLeft="@+id/tvFriendLoc2"
+        android:text="TextView" />
+
+    <TextView
+        android:id="@+id/tvFriendLoc4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/tvFriend4"
+        android:layout_alignBottom="@+id/tvFriend4"
+        android:layout_alignLeft="@+id/tvFriendLoc3"
+        android:text="TextView" />
+
 </RelativeLayout>

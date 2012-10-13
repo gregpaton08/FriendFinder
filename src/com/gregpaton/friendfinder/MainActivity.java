@@ -1,7 +1,12 @@
 package com.gregpaton.friendfinder;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import android.location.Location;
 import android.location.LocationListener;
@@ -12,15 +17,17 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
-	private final String TAG = this.getClass().getSimpleName();
+	private final int numFriends = 4;
 	
+	// layout
 	TextView _tvLocation;
 	TextView _tvFriend1;
 	TextView _tvFriend2;
@@ -30,10 +37,16 @@ public class MainActivity extends Activity {
 	ImageView _ivFriend2;
 	ImageView _ivFriend3;
 	ImageView _ivFriend4;
-	Friend friend1;
-	Friend friend2;
-	Friend friend3;
-	Friend friend4;
+	TextView _tvFriendLoc1;
+	TextView _tvFriendLoc2;
+	TextView _tvFriendLoc3;
+	TextView _tvFriendLoc4;
+	Button _btnRefresh;
+	// friends
+	Friend friends[] = new Friend[numFriends];
+	
+	public double latitude;
+	public double longitude;
 	
 
     @Override
@@ -41,7 +54,8 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         
-        Log.i(TAG, "Main thread: " + Thread.currentThread().getId());
+        latitude = 0;
+        longitude = 0;
         
         _tvLocation = (TextView) findViewById(R.id.tvLocation);
         _tvFriend1 = (TextView) findViewById(R.id.tvFriend1);
@@ -52,14 +66,28 @@ public class MainActivity extends Activity {
         _ivFriend2 = (ImageView) findViewById(R.id.ivFriend2);
         _ivFriend3 = (ImageView) findViewById(R.id.ivFriend3);
         _ivFriend4 = (ImageView) findViewById(R.id.ivFriend4);
+        _tvFriendLoc1 = (TextView) findViewById(R.id.tvFriendLoc1);
+        _tvFriendLoc2 = (TextView) findViewById(R.id.tvFriendLoc2);
+        _tvFriendLoc3 = (TextView) findViewById(R.id.tvFriendLoc3);
+        _tvFriendLoc4 = (TextView) findViewById(R.id.tvFriendLoc4);
+        _btnRefresh = (Button) findViewById(R.id.btnRefresh);
+        
+        _btnRefresh.setOnClickListener(new View.OnClickListener() {
+	        public void onClick(View v) {
+	            new DownloadLocationTask().execute("http://winlab.rutgers.edu/~shubhamj/locations.txt");
+	        }
+	    });
 
-        friend1 = new Friend("Mickey", _tvFriend1, _ivFriend1, "http://winlab.rutgers.edu/~shubhamj/mickey.png");
-        friend2 = new Friend("Donald", _tvFriend2, _ivFriend2, "http://winlab.rutgers.edu/~shubhamj/donald.jpg");
-        friend3 = new Friend("Goofy", _tvFriend3, _ivFriend3, "http://winlab.rutgers.edu/~shubhamj/goofy.png");
-        friend4 = new Friend("Garfield", _tvFriend4, _ivFriend4, "http://winlab.rutgers.edu/~shubhamj/garfield.jpg");
+        friends[0] = new Friend("Mickey", _tvFriend1, _tvFriendLoc1, _ivFriend1, "http://winlab.rutgers.edu/~shubhamj/mickey.png");
+        friends[1] = new Friend("Donald", _tvFriend2, _tvFriendLoc2, _ivFriend2, "http://winlab.rutgers.edu/~shubhamj/donald.jpg");
+        friends[2] = new Friend("Goofy", _tvFriend3, _tvFriendLoc3, _ivFriend3, "http://winlab.rutgers.edu/~shubhamj/goofy.png");
+        friends[3] = new Friend("Garfield", _tvFriend4, _tvFriendLoc4, _ivFriend4, "http://winlab.rutgers.edu/~shubhamj/garfield.jpg");
         
         // download and display friend images
-		new DownloadImageTask().execute(friend1, friend2, friend3, friend4);
+		new DownloadImageTask().execute(friends[0], friends[1], friends[2], friends[3]);
+		
+		// download friend location data and update distances
+        new DownloadLocationTask().execute("http://winlab.rutgers.edu/~shubhamj/locations.txt");
         
         //Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -67,15 +95,10 @@ public class MainActivity extends Activity {
         // Define a listener that responds to location updates
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
-                // Called when a new location is found by the network location provider.
-                //makeUseOfNewLocation(location);
-
-        		String locationText = "Time: " + "Lat = " + location.getLatitude() + " Long = " + location.getLongitude() + "\n";
-            	
-            	if (location != null)
-            	{
-            		//Toast.makeText(getApplicationContext(), locationText, Toast.LENGTH_SHORT).show();
-            		_tvLocation.setText(locationText);
+            	if (location != null) {
+	            	latitude = location.getLatitude();
+	            	longitude = location.getLongitude();
+	            	_tvLocation.setText("Lat: " + latitude + " Long: " + longitude);
             	}
             }
 
@@ -91,6 +114,9 @@ public class MainActivity extends Activity {
         // Register the listener with the Location Manager to receive location updates
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
         
+        // set up daemon to update distances every 30 seconds
+        Timer locationDaemon = new Timer(true);
+        locationDaemon.schedule(new updateLocationTask(), 0, 30000);
     }
 
     @Override
@@ -151,8 +177,60 @@ public class MainActivity extends Activity {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
 		return bitmap;
+	}
+	
+	// class to download friend location data and update friend distance
+	private class DownloadLocationTask extends AsyncTask<String, Void, String> {
+		@Override
+		protected String doInBackground(String... url) {
+            return loadLocationFromNetwork(url[0]);
+		}
+
+		@Override
+		protected void onPostExecute(String locations) {
+			// parse and set locations of friends
+			String[] tokens = locations.split(" ");
+			for (int i = 0; i < tokens.length; ++i) {
+				for (int j = 0; j < numFriends; ++j) {
+					if (tokens[i].equalsIgnoreCase(friends[j].name)) {
+						++i;
+						friends[j].latitude = Double.valueOf(tokens[i]);
+						++i;
+						friends[j].longitude = Double.valueOf(tokens[i]);
+						friends[j].updateDistance(latitude, longitude);
+						break;
+					}						
+				}
+			}
+		}
+	}
+	
+
+	private String loadLocationFromNetwork(String url) {
+		String text = "";
+		try {
+			   URL textUrl = new URL(url);
+			   BufferedReader bufferReader = new BufferedReader(new InputStreamReader(textUrl.openStream()));
+			   String buffer;
+			   while ((buffer = bufferReader.readLine()) != null) {
+				   text += buffer;
+				   text += " ";
+			   }
+		}
+		catch(IOException e) {
+			e.printStackTrace(); 
+			return null;
+		}
+		return text;
+	}
+	
+	private class updateLocationTask extends TimerTask {
+		@Override
+		public void run() {
+	        new DownloadLocationTask().execute("http://winlab.rutgers.edu/~shubhamj/locations.txt");
+		}
+		
 	}
 }
 
