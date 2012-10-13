@@ -14,7 +14,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Menu;
-import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -31,6 +30,11 @@ public class MainActivity extends Activity {
 	ImageView _ivFriend2;
 	ImageView _ivFriend3;
 	ImageView _ivFriend4;
+	Friend friend1;
+	Friend friend2;
+	Friend friend3;
+	Friend friend4;
+	
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,14 @@ public class MainActivity extends Activity {
         _ivFriend2 = (ImageView) findViewById(R.id.ivFriend2);
         _ivFriend3 = (ImageView) findViewById(R.id.ivFriend3);
         _ivFriend4 = (ImageView) findViewById(R.id.ivFriend4);
+
+        friend1 = new Friend("Mickey", _tvFriend1, _ivFriend1, "http://winlab.rutgers.edu/~shubhamj/mickey.png");
+        friend2 = new Friend("Donald", _tvFriend2, _ivFriend2, "http://winlab.rutgers.edu/~shubhamj/donald.jpg");
+        friend3 = new Friend("Goofy", _tvFriend3, _ivFriend3, "http://winlab.rutgers.edu/~shubhamj/goofy.png");
+        friend4 = new Friend("Garfield", _tvFriend4, _ivFriend4, "http://winlab.rutgers.edu/~shubhamj/garfield.jpg");
+        
+        // download and display friend images
+		new DownloadImageTask().execute(friend1, friend2, friend3, friend4);
         
         //Acquire a reference to the system Location Manager
         LocationManager locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -65,9 +77,6 @@ public class MainActivity extends Activity {
             		//Toast.makeText(getApplicationContext(), locationText, Toast.LENGTH_SHORT).show();
             		_tvLocation.setText(locationText);
             	}
-            	Log.i("", "before image");
-                downloadImage(_ivFriend1);
-            	Log.i("", "after image");
             }
 
             public void onStatusChanged(String provider, int status, Bundle extras) {
@@ -90,31 +99,54 @@ public class MainActivity extends Activity {
         return true;
     }
     
-    public void downloadImage(View v) {
-		//((ImageView)v).setImageBitmap(null);
-		new DownloadImageTask()
-				.execute("http://www.winlab.rutgers.edu/~shubhamj/mickey.png");
-	}
-
-	private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
+    // class to handle downloading friend images. Allows at most two
+    // concurrent downloads
+	private class DownloadImageTask extends AsyncTask<Friend, Void, Friend> {
 		@Override
-		protected Bitmap doInBackground(String... url) {
-			Log.i("image", "doInBack");
-			return loadImageFromNetwork(url[0]);
+		protected Friend doInBackground(Friend... friend) {
+			int length = friend.length;
+			// If downloading one image, process request when possible
+			if (length == 1) {
+				Friend.waitForOthers();
+				friend[0].setWorking(true);
+				friend[0].bitmap = loadImageFromNetwork(friend[0].url);
+				return friend[0];
+			}
+			// if downloading two images, create second thread and 
+			// process first request when possible
+			if (length == 2) {	
+				new DownloadImageTask().execute(friend[1]);
+				Friend.waitForOthers();
+				friend[0].setWorking(true);
+				friend[0].bitmap = loadImageFromNetwork(friend[0].url);
+				return friend[0];
+			}
+			// if downloading more than two images, create threads for 
+			// first all images
+			if (length > 2) {
+				for (int i = 0; i < length; i+=2) {
+					if (i+1 < length)
+						new DownloadImageTask().execute(friend[i], friend[i+1]);
+					else
+						new DownloadImageTask().execute(friend[i]);
+				}
+			}
+
+			return null;
 		}
 
 		@Override
-		protected void onPostExecute(Bitmap result) {
-			Log.i("image", "onPost");
-			_ivFriend1.setImageBitmap(result);
+		protected void onPostExecute(Friend friend) {
+			if (friend == null)
+				return;
+			friend.imageView.setImageBitmap(friend.bitmap);
+			friend.setWorking(false);
 		}
 	}
 
 	private Bitmap loadImageFromNetwork(String url) {
 		Bitmap bitmap = null;
-
 		try {
-			Log.i("image", "download");
 			bitmap = BitmapFactory.decodeStream((InputStream) new URL(url).getContent());
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -123,3 +155,5 @@ public class MainActivity extends Activity {
 		return bitmap;
 	}
 }
+
+
