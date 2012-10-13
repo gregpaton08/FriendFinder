@@ -15,21 +15,22 @@ public final class R {
         public static final int ic_launcher=0x7f020001;
     }
     public static final class id {
-        public static final int btnRefresh=0x7f070009;
-        public static final int ivFriend1=0x7f070002;
-        public static final int ivFriend2=0x7f070001;
-        public static final int ivFriend3=0x7f070003;
-        public static final int ivFriend4=0x7f070004;
-        public static final int menu_settings=0x7f07000e;
-        public static final int tvFriend1=0x7f070005;
-        public static final int tvFriend2=0x7f070006;
-        public static final int tvFriend3=0x7f070008;
-        public static final int tvFriend4=0x7f070007;
-        public static final int tvFriendLoc1=0x7f07000a;
-        public static final int tvFriendLoc2=0x7f07000b;
-        public static final int tvFriendLoc3=0x7f07000c;
-        public static final int tvFriendLoc4=0x7f07000d;
-        public static final int tvLocation=0x7f070000;
+        public static final int btnRefresh=0x7f070008;
+        public static final int ivFriend1=0x7f070001;
+        public static final int ivFriend2=0x7f070000;
+        public static final int ivFriend3=0x7f070002;
+        public static final int ivFriend4=0x7f070003;
+        public static final int mapview=0x7f07000e;
+        public static final int menu_settings=0x7f07000f;
+        public static final int tvFriend1=0x7f070004;
+        public static final int tvFriend2=0x7f070005;
+        public static final int tvFriend3=0x7f070007;
+        public static final int tvFriend4=0x7f070006;
+        public static final int tvFriendLoc1=0x7f07000d;
+        public static final int tvFriendLoc2=0x7f07000c;
+        public static final int tvFriendLoc3=0x7f07000b;
+        public static final int tvFriendLoc4=0x7f07000a;
+        public static final int tvLocation=0x7f070009;
     }
     public static final class layout {
         public static final int activity_main=0x7f030000;

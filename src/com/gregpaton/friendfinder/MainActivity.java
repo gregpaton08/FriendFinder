@@ -8,6 +8,11 @@ import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.google.android.maps.GeoPoint;
+import com.google.android.maps.MapActivity;
+import com.google.android.maps.MapController;
+import com.google.android.maps.MapView;
+
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -23,7 +28,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-public class MainActivity extends Activity {
+public class MainActivity extends MapActivity {
+//public class MainActivity extends Activity {
 
 	private final int numFriends = 4;
 	
@@ -42,12 +48,20 @@ public class MainActivity extends Activity {
 	TextView _tvFriendLoc3;
 	TextView _tvFriendLoc4;
 	Button _btnRefresh;
+	Button _btnExit;
+	MapView _mvFriends;
 	// friends
 	Friend friends[] = new Friend[numFriends];
+	
+	MapController mapCon;
 	
 	public double latitude;
 	public double longitude;
 	
+	@Override
+	protected boolean isRouteDisplayed() {
+	    return false;
+	}	
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,12 +85,16 @@ public class MainActivity extends Activity {
         _tvFriendLoc3 = (TextView) findViewById(R.id.tvFriendLoc3);
         _tvFriendLoc4 = (TextView) findViewById(R.id.tvFriendLoc4);
         _btnRefresh = (Button) findViewById(R.id.btnRefresh);
-        
+        _mvFriends = (MapView) findViewById(R.id.mapview);
+        _mvFriends.setBuiltInZoomControls(true);
+        mapCon = _mvFriends.getController();
+
         _btnRefresh.setOnClickListener(new View.OnClickListener() {
-	        public void onClick(View v) {
-	            new DownloadLocationTask().execute("http://winlab.rutgers.edu/~shubhamj/locations.txt");
-	        }
-	    });
+            public void onClick(View v) {
+                new DownloadLocationTask().execute("http://winlab.rutgers.edu/~shubhamj/locations.txt");
+            }
+        });
+        
 
         friends[0] = new Friend("Mickey", _tvFriend1, _tvFriendLoc1, _ivFriend1, "http://winlab.rutgers.edu/~shubhamj/mickey.png");
         friends[1] = new Friend("Donald", _tvFriend2, _tvFriendLoc2, _ivFriend2, "http://winlab.rutgers.edu/~shubhamj/donald.jpg");
@@ -98,7 +116,11 @@ public class MainActivity extends Activity {
             	if (location != null) {
 	            	latitude = location.getLatitude();
 	            	longitude = location.getLongitude();
-	            	_tvLocation.setText("Lat: " + latitude + " Long: " + longitude);
+	            	_tvLocation.setText(String.format("Lat: %.1f Long: %.1f", latitude, longitude));
+            	    GeoPoint point = new GeoPoint((int)(latitude * 1E6), (int)(longitude * 1E6));
+            	    mapCon.setZoom(12);
+            	    mapCon.setCenter(point);
+            	    _mvFriends.invalidate();
             	}
             }
 
