@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -12,6 +13,8 @@ import com.google.android.maps.GeoPoint;
 import com.google.android.maps.MapActivity;
 import com.google.android.maps.MapController;
 import com.google.android.maps.MapView;
+import com.google.android.maps.Overlay;
+import com.google.android.maps.OverlayItem;
 
 import android.location.Location;
 import android.location.LocationListener;
@@ -22,6 +25,9 @@ import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -51,7 +57,10 @@ public class MainActivity extends MapActivity {
 	Button _btnExit;
 	MapView _mvFriends;
 	// friends
-	Friend friends[] = new Friend[numFriends];
+	public Friend friends[] = new Friend[numFriends];
+	
+	public FriendItemizedOverlay itemizedoverlays[] = new FriendItemizedOverlay[numFriends];
+	public List<Overlay> mapOverlays;
 	
 	MapController mapCon;
 	
@@ -101,6 +110,14 @@ public class MainActivity extends MapActivity {
         friends[2] = new Friend("Goofy", _tvFriend3, _tvFriendLoc3, _ivFriend3, "http://winlab.rutgers.edu/~shubhamj/goofy.png");
         friends[3] = new Friend("Garfield", _tvFriend4, _tvFriendLoc4, _ivFriend4, "http://winlab.rutgers.edu/~shubhamj/garfield.jpg");
         
+        // set up map overlay
+        mapOverlays = _mvFriends.getOverlays();
+        for (int i = 0; i < numFriends; ++i) {
+            Drawable drawable = this.getResources().getDrawable(R.drawable.androidmarker);
+            itemizedoverlays[i] = new FriendItemizedOverlay(drawable, this);
+        }
+        
+        
         // download and display friend images
 		new DownloadImageTask().execute(friends[0], friends[1], friends[2], friends[3]);
 		
@@ -114,6 +131,7 @@ public class MainActivity extends MapActivity {
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
             	if (location != null) {
+            	    setMapImages();
 	            	latitude = location.getLatitude();
 	            	longitude = location.getLongitude();
 	            	_tvLocation.setText(String.format("Lat: %.1f Long: %.1f", latitude, longitude));
@@ -139,6 +157,16 @@ public class MainActivity extends MapActivity {
         // set up daemon to update distances every 30 seconds
         Timer locationDaemon = new Timer(true);
         locationDaemon.schedule(new updateLocationTask(), 0, 30000);
+        
+    }
+    
+    public void setMapImages() {
+        for (int i = 0; i < numFriends; ++i) {
+            if (friends[i].bitmap != null) {
+                //Drawable drawable = new BitmapDrawable(getResources(), friends[i].bitmap).getConstantState().newDrawable();
+                //itemizedoverlays[i] = new FriendItemizedOverlay(drawable, this);
+            }
+        }
     }
 
     @Override
@@ -221,6 +249,14 @@ public class MainActivity extends MapActivity {
 						++i;
 						friends[j].longitude = Double.valueOf(tokens[i]);
 						friends[j].updateDistance(latitude, longitude);
+			            GeoPoint point = new GeoPoint((int)(friends[j].latitude * 1E6), (int)(friends[j].longitude * 1E6));
+			            OverlayItem overlayitem = new OverlayItem(point, friends[j].name, String.format("Distance: %.1f", friends[j].distance));
+			            if (itemizedoverlays[j] != null) {
+    			            itemizedoverlays[j].addOverlay(overlayitem);
+    			            mapOverlays.add(itemizedoverlays[j]);
+			            }
+			            else
+			                Log.i("", "null: " + j);
 						break;
 					}						
 				}
